@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t rohitvc/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run rohitvc/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t rohitvc/multi-docker-client ./client
+  - docker build -t rohitvc/multi-docker-nginx ./nginx
+  - docker build -t rohitvc/multi-docker-server ./server
+  - docker build -t rohitvc/multi-docker-worker ./worker
+
+  #   login to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #   push images to docker hub
+  - docker push rohitvc/multi-docker-client
+  - docker push rohitvc/multi-docker-nginx
+  - docker push rohitvc/multi-docker-server
+  - docker push rohitvc/multi-docker-worker
